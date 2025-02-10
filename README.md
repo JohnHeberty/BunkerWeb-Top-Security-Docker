@@ -70,7 +70,7 @@ Toda ajuda é bem-vinda para aprimorar essa solução e fortalecer a segurança 
 ---
 ### 📞 Contato
 ---
-🧑‍💼 **Linkedin**: [John Heberty](ttps://www.linkedin.com/in/john-heberty/)
+🧑‍💼 **Linkedin**: [John Heberty](https://www.linkedin.com/in/john-heberty/)
 
 ✉️ **E-mail**: john.7heberty@gmail.com
 
