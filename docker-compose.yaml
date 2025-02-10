@@ -1,0 +1,133 @@
+# ForK By https://github.com/bunkerity/bunkerweb/blob/master/examples/web-ui/docker-compose.wizard.yml
+# https://docs.bunkerweb.io/latest/security-tuning/
+services:
+
+  bunkerweb:
+    image: bunkerity/bunkerweb:latest
+    restart: unless-stopped
+    ports:
+      - 80:8080
+      - 443:8443
+    labels:
+      - "bunkerweb.INSTANCE=yes"
+    environment:
+      ## CONFIGURAÇÕES GERAIS ##
+      - SERVER_NAME=LoadsTask # Nome da tarefa que irá aparecer nos serviços
+      #- USE_AUTH_BASIC=yes  # Ativa autenticação HTTP básica
+      #- AUTH_BASIC_LOCATION=sitewide  # Aplica autenticação a todo o site
+      #- AUTH_BASIC_USER=johnheberty # Usuario de acesso 
+      #- AUTH_BASIC_PASSWORD=Obrigadodeus.1998 # Senha de acesso
+      #- AUTH_BASIC_TEXT=404 - Not Found  # Engana bots na autenticação
+      - USE_REAL_IP=yes
+      - REAL_IP_FROM=192.168.1.1 # 192.168.1.102
+
+      ## BANCO DE DADOS ##
+      - DATABASE_URI=mariadb+pymysql://bunkerweb:John01111998@bw-db:3306/db
+
+      ## SEGURANÇA ##
+      - WHITELIST_COUNTRY=BR
+      - API_WHITELIST_IP=127.0.0.0/8 10.20.30.0/24 205.164.66.77 192.168.1.0/24
+      - MULTISITE=yes # Altera para ter suporte para trabalhar com varios dominios
+      - HTTP3=yes  # Habilita HTTP/3 se HTTPS estiver ativo
+      #- LISTEN_HTTP=no  # Bloqueia requisições HTTP diretas
+      - DENY_HTTP_STATUS=444  # Fecha conexão sem exibir erro
+      - AUTO_LETS_ENCRYPT=yes  # Habilita certificados SSL automáticos
+      - EMAIL_LETS_ENCRYPT=john.7heberty@gmail.com # Usado para notificações
+      - DISABLE_DEFAULT_SERVER=yes  # Fecha conexões TCP não autorizadas
+      - ALLOWED_METHODS=GET|POST|HEAD|OPTIONS|PUT|DELETE
+      - MAX_CLIENT_SIZE=1m
+      - SERVE_FILES=no  # Recomendado para proxy reverso
+      - REMOVE_HEADERS=Server X-Powered-By X-AspNet-Version X-AspNetMvc-Version
+      - KEEP_UPSTREAM_HEADERS=Content-Security-Policy Permissions-Policy Feature-Policy X-Frame-Options
+
+      ## OTIMIZAÇÕES ##
+      - USE_CLIENT_CACHE=yes
+      - USE_GZIP=yes
+      #- USE_BROTLI=yes  # Ativa compressão Brotli para ainda mais eficiência
+ 
+      ## SEGURANÇA MODSECURITY ##
+      - USE_MODSECURITY=yes
+      - USE_MODSECURITY_CRS=yes
+      - MODSECURITY_CRS_VERSION=3
+
+      # DETECÇÃO DE ATAQUES ##
+      - BAD_BEHAVIOR_THRESHOLD=11
+      - BAD_BEHAVIOR_COUNT_TIME=600
+      - BAD_BEHAVIOR_STATUS_CODES=400 401 403 404 405 429 444 500 501 502 503 504 508 499 520
+      - BLACKLIST_URI=^/api2/.*(users|permissions|tokens) ^/api2/.*(\.php|\.sh|\.pl|\.exe|\.conf)
+
+      ## ESCANEAMENTO REVERSO ##
+      # - USE_REVERSE_SCAN=yes
+      # - REVERSE_SCAN_PORTS=22 23 25 53 80 110 143 443 465 587 993 995 1080 1433 1521 2049 2082 2083 2086 2087 2222 3128 3306 3389 4444 5000 5432 5800 5900 5985 5986 6000 6379 6667 7000 8080 8081 8443 8888 9000 9090 9200 27017 50000
+      # - REVERSE_SCAN_TIMEOUT=1000
+
+      ## RESTRIÇÕES GEOGRÁFICAS ##
+      - UI_HOST=http://bw-ui:7000
+
+    networks:
+      - bw-universe
+      - bw-services
+
+  bw-scheduler:
+    image: bunkerity/bunkerweb-scheduler:latest
+    restart: unless-stopped
+    depends_on:
+      - bunkerweb
+      - bw-docker
+    environment:
+      - DATABASE_URI=mariadb+pymysql://bunkerweb:John01111998@bw-db:3306/db # Remember to set a stronger password for the database
+      - DOCKER_HOST=tcp://bw-docker:2375
+    networks:
+      - bw-universe
+      - bw-docker
+
+  bw-docker:
+    image: tecnativa/docker-socket-proxy:nightly
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - CONTAINERS=1
+      - LOG_LEVEL=warning
+    networks:
+      - bw-docker
+
+  bw-ui:
+    image: bunkerity/bunkerweb-ui:latest
+    restart: unless-stopped
+    depends_on:
+      - bw-docker
+    environment:
+      - DATABASE_URI=mariadb+pymysql://bunkerweb:John01111998@bw-db:3306/db # Remember to set a stronger password for the database
+      - DOCKER_HOST=tcp://bw-docker:2375
+    networks:
+      - bw-universe
+      - bw-docker
+
+  bw-db:
+    image: mariadb:10.10
+    restart: unless-stopped
+    environment:
+      - MYSQL_RANDOM_ROOT_PASSWORD=yes
+      - MYSQL_DATABASE=db
+      - MYSQL_USER=bunkerweb
+      - MYSQL_PASSWORD=John01111998 # Remember to set a stronger password for the database
+    volumes:
+      - bw-data:/var/lib/mysql
+    networks:
+      - bw-docker
+
+volumes:
+  bw-data:
+
+networks:
+  bw-universe:
+    name: bw-universe
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.20.30.0/24
+  bw-services:
+    name: bw-services
+  bw-docker:
+    name: bw-docker
