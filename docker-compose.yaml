@@ -22,7 +22,7 @@ services:
       - REAL_IP_FROM=192.168.1.1 # 192.168.1.102
 
       ## BANCO DE DADOS ##
-      - DATABASE_URI=mariadb+pymysql://bunkerweb:John01111998@bw-db:3306/db
+      - DATABASE_URI=mariadb+pymysql://bunkerweb:changeme@bw-db:3306/db
 
       ## SEGURANÇA ##
       - WHITELIST_COUNTRY=BR
@@ -75,7 +75,7 @@ services:
       - bunkerweb
       - bw-docker
     environment:
-      - DATABASE_URI=mariadb+pymysql://bunkerweb:John01111998@bw-db:3306/db # Remember to set a stronger password for the database
+      - DATABASE_URI=mariadb+pymysql://bunkerweb:changeme@bw-db:3306/db # Remember to set a stronger password for the database
       - DOCKER_HOST=tcp://bw-docker:2375
     networks:
       - bw-universe
@@ -98,7 +98,7 @@ services:
     depends_on:
       - bw-docker
     environment:
-      - DATABASE_URI=mariadb+pymysql://bunkerweb:John01111998@bw-db:3306/db # Remember to set a stronger password for the database
+      - DATABASE_URI=mariadb+pymysql://bunkerweb:changeme@bw-db:3306/db # Remember to set a stronger password for the database
       - DOCKER_HOST=tcp://bw-docker:2375
     networks:
       - bw-universe
@@ -111,7 +111,7 @@ services:
       - MYSQL_RANDOM_ROOT_PASSWORD=yes
       - MYSQL_DATABASE=db
       - MYSQL_USER=bunkerweb
-      - MYSQL_PASSWORD=John01111998 # Remember to set a stronger password for the database
+      - MYSQL_PASSWORD=changeme # Remember to set a stronger password for the database
     volumes:
       - bw-data:/var/lib/mysql
     networks:
