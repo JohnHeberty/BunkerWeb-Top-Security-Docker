@@ -39,12 +39,14 @@ cd BunkerWeb-Top-Security
 ### 2️⃣ **Alterando a Senha do Banco de Dados**
 ```sh
 nano docker-compose.yaml
-Alt + R # For replace password
-changeme # Tag by pass
-<Your-Passworkd> # replace yout password
-Ctrl + X # For exit nano
-Y # For confirm exit
-Enter # For save and exit
+Alt + R # Para alterar a senha padrão
+changeme # Tag para alterar a senha
+<Your-Passworkd> # Digite a Sua Senha
+Enter # Para fazer o replace
+Y # Para confirmar o replace
+Ctrl + X # Para Salvar e Sair
+Y # Para confirmar a Saida
+Enter # Salvar e Sair
 ```
 Agora sua senha foi alterada com sucesso! 🚀
 
