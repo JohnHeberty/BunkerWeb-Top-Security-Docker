@@ -1,4 +1,4 @@
-# 🛡️ BunkerWeb Top Security
+# 🛡️ BunkerWeb Top Security in Docker
 
 🚀 **Protegendo seu servidor contra ataques DDoS e exploits!**  
 Este projeto nasceu após enfrentar **uma invasão hacker seguida de um ataque DDoS** no meu HomeLab baseado em Proxmox. A experiência me levou a aprofundar meus conhecimentos em **segurança cibernética, firewalls e proteção de servidores**, resultando neste **Docker Compose** altamente seguro, usando **BunkerWeb** e outras camadas de proteção.
