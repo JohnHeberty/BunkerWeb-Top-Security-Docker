@@ -3,6 +3,7 @@
 services:
 
   bunkerweb:
+    container_name: bunkerweb
     image: bunkerity/bunkerweb:latest
     restart: unless-stopped
     ports:
@@ -15,8 +16,8 @@ services:
       - SERVER_NAME=LoadsTask # Nome da tarefa que irá aparecer nos serviços
       #- USE_AUTH_BASIC=yes  # Ativa autenticação HTTP básica
       #- AUTH_BASIC_LOCATION=sitewide  # Aplica autenticação a todo o site
-      #- AUTH_BASIC_USER=johnheberty # Usuario de acesso 
-      #- AUTH_BASIC_PASSWORD=Obrigadodeus.1998 # Senha de acesso
+      #- AUTH_BASIC_USER=bunkerweb # Usuario de acesso 
+      #- AUTH_BASIC_PASSWORD=changeme # Senha de acesso
       #- AUTH_BASIC_TEXT=404 - Not Found  # Engana bots na autenticação
       - USE_REAL_IP=yes
       - REAL_IP_FROM=192.168.1.1 # 192.168.1.102
@@ -39,6 +40,7 @@ services:
       - SERVE_FILES=no  # Recomendado para proxy reverso
       - REMOVE_HEADERS=Server X-Powered-By X-AspNet-Version X-AspNetMvc-Version
       - KEEP_UPSTREAM_HEADERS=Content-Security-Policy Permissions-Policy Feature-Policy X-Frame-Options
+      - LETS_ENCRYPT_CLEAR_OLD_CERTS=yes
 
       ## OTIMIZAÇÕES ##
       - USE_CLIENT_CACHE=yes
@@ -64,24 +66,51 @@ services:
       ## RESTRIÇÕES GEOGRÁFICAS ##
       - UI_HOST=http://bw-ui:7000
 
+    volumes:
+      - /etc/ssl/bunkerweb:/ssl:ro  # Mount SSL directory
+
     networks:
       - bw-universe
       - bw-services
 
   bw-scheduler:
-    image: bunkerity/bunkerweb-scheduler:latest
-    restart: unless-stopped
-    depends_on:
-      - bunkerweb
-      - bw-docker
+    container_name: bw-scheduler
+    image: bunkerity/bunkerweb-scheduler:1.6.0-beta
+    user: root
+    restart: "unless-stopped"
     environment:
-      - DATABASE_URI=mariadb+pymysql://bunkerweb:changeme@bw-db:3306/db # Remember to set a stronger password for the database
-      - DOCKER_HOST=tcp://bw-docker:2375
+      DATABASE_URI: mariadb+pymysql://bunkerweb:changeme@bw-db:3306/db # Remember to set a stronger password for the database
+      DOCKER_HOST: tcp://bw-docker:2375
+      BUNKERWEB_INSTANCES: "bunkerweb" # This setting is mandatory to specify the BunkerWeb instance
+      SERVER_NAME: "LoadsTask"
+      MULTISITE: "yes"
+      USE_REVERSE_PROXY: "yes" # Will be applied to all server config
+      REVERSE_PROXY_URL: "/" # Will be applied to all server config]
+      API_WHITELIST_IP: "127.0.0.0/8 10.20.30.0/24"
+      USE_REAL_IP: "yes"
+      REAL_IP_FROM: "1.2.3.0/24 100.64.0.0/10"
+      REAL_IP_HEADER: "X-Forwarded-For"
+    volumes:
+      - bw-data:/data # This volume is mandatory to store the scheduler data (sqlite database, backups, etc.)
     networks:
       - bw-universe
-      - bw-docker
+
+  # bw-scheduler:
+  #   container_name: bw-scheduler
+  #   image: bunkerity/bunkerweb-scheduler:latest
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - bunkerweb
+  #     - bw-docker
+  #   environment:
+  #     - DATABASE_URI=mariadb+pymysql://bunkerweb:changeme@bw-db:3306/db # Remember to set a stronger password for the database
+  #     - DOCKER_HOST=tcp://bw-docker:2375
+  #   networks:
+  #     - bw-universe
+  #     - bw-docker
 
   bw-docker:
+    container_name: bw-docker
     image: tecnativa/docker-socket-proxy:nightly
     restart: unless-stopped
     volumes:
@@ -93,10 +122,12 @@ services:
       - bw-docker
 
   bw-ui:
+    container_name: bw-ui
     image: bunkerity/bunkerweb-ui:latest
     restart: unless-stopped
     depends_on:
       - bw-docker
+      - bw-db
     environment:
       - DATABASE_URI=mariadb+pymysql://bunkerweb:changeme@bw-db:3306/db # Remember to set a stronger password for the database
       - DOCKER_HOST=tcp://bw-docker:2375
@@ -105,8 +136,11 @@ services:
       - bw-docker
 
   bw-db:
+    container_name: bw-db
     image: mariadb:10.10
     restart: unless-stopped
+    ports:
+      - 3306:3306
     environment:
       - MYSQL_RANDOM_ROOT_PASSWORD=yes
       - MYSQL_DATABASE=db
