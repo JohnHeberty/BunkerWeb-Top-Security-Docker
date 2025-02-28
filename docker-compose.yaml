@@ -7,7 +7,7 @@ services:
 
   bunkerweb:
     container_name: bunkerweb
-    image: bunkerity/bunkerweb:latest
+    image: bunkerity/bunkerweb:1.5.12
     restart: unless-stopped
     ports:
       - 80:8080
@@ -100,7 +100,7 @@ services:
 
   bw-scheduler:
     container_name: bw-scheduler
-    image: bunkerity/bunkerweb-scheduler:1.6.0-beta
+    image: bunkerity/bunkerweb-scheduler:1.5.12
     # image: bunkerity/bunkerweb-scheduler:latest
     user: root
     restart: unless-stopped
@@ -131,7 +131,7 @@ services:
 
   bw-ui:
     container_name: bw-ui
-    image: bunkerity/bunkerweb-ui:latest
+    image: bunkerity/bunkerweb-ui:1.5.12
     restart: unless-stopped
     depends_on:
       - bw-docker
